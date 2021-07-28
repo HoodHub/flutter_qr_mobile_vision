@@ -225,7 +225,7 @@ class QrCameraC2 implements QrCamera {
     private void startCamera() {
         List<Surface> list = new ArrayList<>();
 
-        Size jpegSize = getAppropriateSize(jpegSizes);
+        Size jpegSize = getAppropriateDetectSize(jpegSizes);
 
         final int width = jpegSize.getWidth(), height = jpegSize.getHeight();
         reader = ImageReader.newInstance(width, height, ImageFormat.YUV_420_888, 5);
@@ -358,6 +358,56 @@ class QrCameraC2 implements QrCamera {
             } else {
                 for (Size size : sizes) {
                     if (size.getHeight() < targetWidth || size.getWidth() < targetHeight) {
+                        break;
+                    }
+                    s = size;
+                }
+            }
+        }
+        return s;
+    }
+
+    private Size getAppropriateDetectSize(Size[] sizes) {
+        final int targetW = Integer.max(targetWidth, 1440);
+        final int targetH = Integer.max(targetHeight, 1440);
+
+        // assume sizes is never 0
+        if (sizes.length == 1) {
+            return sizes[0];
+        }
+
+        Size s = sizes[0];
+        Size s1 = sizes[1];
+
+        if (s1.getWidth() > s.getWidth() || s1.getHeight() > s.getHeight()) {
+            // ascending
+            if (sensorOrientation % 180 == 0) {
+                for (Size size : sizes) {
+                    s = size;
+                    if (size.getHeight() > targetH && size.getWidth() > targetW) {
+                        break;
+                    }
+                }
+            } else {
+                for (Size size : sizes) {
+                    s = size;
+                    if (size.getHeight() > targetW && size.getWidth() > targetH) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            // descending
+            if (sensorOrientation % 180 == 0) {
+                for (Size size : sizes) {
+                    if (size.getHeight() < targetH || size.getWidth() < targetW) {
+                        break;
+                    }
+                    s = size;
+                }
+            } else {
+                for (Size size : sizes) {
+                    if (size.getHeight() < targetW || size.getWidth() < targetH) {
                         break;
                     }
                     s = size;
